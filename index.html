@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zeit-Schätz-Challenge - Gruppen-Modus</title>
+    <title>Multi-Challenge App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -21,314 +21,505 @@
         .timer-display {
             font-variant-numeric: tabular-nums;
         }
-        .ranking-transition {
-            transition: all 0.5s ease-in-out;
-        }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div id="app" class="max-w-5xl mx-auto">
+    <div id="app" class="max-w-6xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Zeit-Schätz-<span class="text-blue-600">Challenge</span></h1>
-            <p class="text-slate-600 mt-2">Punkte-System: 1. Platz (10 Pkt) | 2. Platz (5 Pkt) | 3. Platz (1 Pkt)</p>
+            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Challenge-<span class="text-blue-600">Zentrale</span></h1>
+            <p class="text-slate-600 mt-2">Sammle Punkte in verschiedenen Disziplinen!</p>
         </header>
 
-        <!-- Login Section -->
-        <div id="loginSection" class="glass-card rounded-2xl p-8 max-w-md mx-auto mb-10">
-            <h2 class="text-xl font-semibold mb-4 text-center">Admin Login</h2>
-            <div class="space-y-4">
-                <input type="password" id="adminPassword" placeholder="Passwort (Standard: admin123)" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Anmelden</button>
+        <!-- Auth Section -->
+        <div id="authSection" class="max-w-md mx-auto">
+            <div id="loginForm" class="glass-card rounded-2xl p-8 mb-6">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800 text-center">Anmelden</h2>
+                <div class="space-y-4">
+                    <p class="text-xs text-blue-600 text-center font-medium">Nutze 3 Buchstaben Vorname + 3 Buchstaben Nachname</p>
+                    <input type="text" id="loginUsername" placeholder="Benutzername (z.B. MaxMus)" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="password" id="loginPassword" placeholder="Passwort" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button onclick="handleLogin()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Login</button>
+                </div>
+                <p class="text-center mt-6 text-sm text-slate-600">
+                    Noch kein Konto? <button onclick="toggleAuth(false)" class="text-blue-600 font-bold hover:underline">Jetzt registrieren</button>
+                </p>
             </div>
-            <p id="loginError" class="text-red-500 text-sm mt-2 hidden text-center">Falsches Passwort!</p>
+
+            <div id="registerForm" class="glass-card rounded-2xl p-8 hidden">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800 text-center">Registrieren</h2>
+                <div class="space-y-4">
+                    <p class="text-xs text-blue-600 text-center font-medium">Wichtig: Name = 3 Vorname + 3 Nachname</p>
+                    <input type="text" id="regUsername" placeholder="Neuer Benutzername (z.B. MaxMus)" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="password" id="regPassword" placeholder="Passwort wählen" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button onclick="handleRegister()" id="regBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Konto erstellen</button>
+                </div>
+                <p class="text-center mt-6 text-sm text-slate-600">
+                    Bereits ein Konto? <button onclick="toggleAuth(true)" class="text-blue-600 font-bold hover:underline">Zum Login</button>
+                </p>
+            </div>
         </div>
 
-        <!-- Main Admin Panel -->
-        <div id="adminPanel" class="hidden space-y-8">
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Spalte 1: Stoppuhr & Eingabe -->
-                <div class="lg:col-span-1 space-y-6">
+        <!-- Main Content -->
+        <div id="mainContent" class="hidden space-y-6">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-4 glass-card p-4 rounded-xl">
+                <span class="text-slate-700 font-medium">👋 <span id="currentUserDisplay" class="text-blue-600 font-bold"></span></span>
+                <div class="flex gap-4">
+                    <button onclick="showPage('home')" class="text-slate-600 hover:text-blue-600 font-bold">Home</button>
+                    <button onclick="showPage('leaderboard')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold hover:bg-blue-200">Rangliste 📊</button>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-700 font-medium">Abmelden</button>
+                </div>
+            </div>
+
+            <!-- HOME PAGE -->
+            <div id="page-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-10">
+                <div onclick="showPage('timer')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-blue-500">
+                    <div class="text-5xl mb-4">⏱️</div>
+                    <h2 class="text-xl font-bold text-slate-800">Zeit-Schätzen</h2>
+                    <p class="text-xs text-slate-500 mt-2">Präzision an der Stoppuhr</p>
+                </div>
+                <div onclick="showPage('running')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-green-500">
+                    <div class="text-5xl mb-4">🏃</div>
+                    <h2 class="text-xl font-bold text-slate-800">Laufen</h2>
+                    <p class="text-xs text-slate-500 mt-2">Rechnen im Lauf</p>
+                </div>
+                <div onclick="showPage('domino')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-purple-500">
+                    <div class="text-5xl mb-4">🀄</div>
+                    <h2 class="text-xl font-bold text-slate-800">Domino</h2>
+                    <p class="text-xs text-slate-500 mt-2">Flow & Geschick</p>
+                </div>
+                <div onclick="showPage('memory')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-orange-500">
+                    <div class="text-5xl mb-4">🧠</div>
+                    <h2 class="text-xl font-bold text-slate-800">Merken</h2>
+                    <p class="text-xs text-slate-500 mt-2">Gedächtnis & Zeit</p>
+                </div>
+                <div onclick="showPage('childhood')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-pink-500">
+                    <div class="text-5xl mb-4">🖼️</div>
+                    <h2 class="text-xl font-bold text-slate-800">Bilderkindheit</h2>
+                    <p class="text-xs text-slate-500 mt-2">Erkenne die Bilder</p>
+                </div>
+                <div onclick="showPage('leaderboard')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-slate-500 bg-slate-50">
+                    <div class="text-5xl mb-4">📊</div>
+                    <h2 class="text-xl font-bold text-slate-800">Live-Rangliste</h2>
+                    <p class="text-xs text-slate-500 mt-2">Alle Spiele kombiniert</p>
+                </div>
+            </div>
+
+            <!-- LEADERBOARD PAGE -->
+            <div id="page-leaderboard" class="hidden max-w-4xl mx-auto space-y-6">
+                <div class="glass-card rounded-3xl overflow-hidden shadow-xl border-t-8 border-blue-600">
+                    <div class="bg-blue-600 p-6 text-white text-center">
+                        <h2 class="text-3xl font-bold tracking-tight">LIVESTREAM RANGLISTE</h2>
+                        <p class="text-blue-100 opacity-80 text-sm">Aktualisiert sich automatisch</p>
+                    </div>
+                    <div class="p-4">
+                        <table class="w-full text-left">
+                            <thead class="text-slate-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-3">Platz</th>
+                                    <th class="px-6 py-3">Benutzer</th>
+                                    <th class="px-6 py-3 text-right">Gesamtpunkte</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liveLeaderboardBody" class="divide-y divide-slate-100">
+                                <tr><td colspan="3" class="text-center py-10 text-slate-400 italic">Verbinde mit Datenbank...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TIMER PAGE -->
+            <div id="page-timer" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-6">
                     <div class="glass-card rounded-2xl p-6 flex flex-col items-center">
                         <div id="timer" class="timer-display text-5xl font-bold text-slate-800 mb-6">00:00.00</div>
                         <div class="flex space-x-2">
-                            <button id="startBtn" onclick="toggleTimer()" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold transition">Start</button>
-                            <button id="resetBtn" onclick="resetTimer()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-full font-semibold transition">Reset</button>
+                            <button id="startBtn" onclick="toggleTimer('timer')" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold">Start</button>
+                            <button onclick="resetTimer('timer')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-full font-semibold">Reset</button>
                         </div>
                     </div>
-
                     <div class="glass-card rounded-2xl p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="font-bold text-slate-800">Aktuelle Gruppe</h2>
-                            <span id="groupStatus" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">0/3 Teilnehmer</span>
+                        <input type="text" id="participantName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border mb-4">
+                        <input type="number" id="guessedTime" placeholder="Schätzung (Sek.)" step="0.1" class="w-full px-4 py-2 rounded-lg border mb-4">
+                        <button onclick="saveResult()" id="saveBtn" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg disabled:opacity-50" disabled>Ergebnis hinzufügen</button>
+                        <div id="groupFullMsg" class="mt-4 hidden">
+                            <button onclick="finalizeGroup()" class="w-full bg-orange-500 text-white font-bold py-2 rounded-lg">Gruppe abschließen</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <h3 class="font-bold border-b pb-2 mb-4">Aktuelle Gruppe</h3>
+                    <div id="currentGroupList" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- RUNNING PAGE -->
+            <div id="page-running" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">🏃 Laufen</h2>
+                    <input type="text" id="runName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="flex items-center justify-between p-4 bg-white rounded-xl border">
+                        <span class="font-bold">Durchlauf geschafft? (+5)</span>
+                        <input type="checkbox" id="runSuccess" class="w-6 h-6">
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border">
+                        <div class="flex justify-between items-center mb-2">
+                            <span>Rechenfehler:</span>
+                            <span id="errorDisplay" class="font-bold text-red-500">0</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="changeCounter('runErrors', -1, 'errorDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">-</button>
+                            <button onclick="changeCounter('runErrors', 1, 'errorDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">+</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 text-center">0 Fehler = +5 Bonus-Punkte!</p>
+                    </div>
+                    <button onclick="saveRunResults()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl">Speichern</button>
+                </div>
+            </div>
+
+            <!-- DOMINO PAGE -->
+            <div id="page-domino" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">🀄 Domino</h2>
+                    <input type="text" id="dominoName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="flex items-center justify-between p-4 bg-white rounded-xl border">
+                        <span class="font-bold">In Zeit aufgestellt? (+5)</span>
+                        <input type="checkbox" id="dominoSuccess" class="w-6 h-6">
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border">
+                        <div class="flex justify-between items-center mb-2"><span>Gestoppt:</span><span id="stuckDisplay" class="font-bold text-orange-500">0</span></div>
+                        <div class="flex gap-2">
+                            <button onclick="changeCounter('stuckCount', -1, 'stuckDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">-</button>
+                            <button onclick="changeCounter('stuckCount', 1, 'stuckDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">+</button>
+                        </div>
+                    </div>
+                    <button onclick="saveDominoResults()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl">Speichern</button>
+                </div>
+            </div>
+
+            <!-- MEMORY PAGE -->
+            <div id="page-memory" class="hidden max-w-3xl mx-auto space-y-6">
+                <div class="glass-card rounded-2xl p-8 space-y-6 border-b-8 border-orange-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🧠 Merken von Dingen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <input type="text" id="memName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">1. Durchgang (Objekte)</label>
+                                <input type="number" id="memCount1" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">2. Durchgang (Objekte)</label>
+                                <input type="number" id="memCount2" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                         </div>
                         <div class="space-y-4">
-                            <input type="text" id="participantName" placeholder="Name" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <input type="number" id="guessedTime" placeholder="Schätzung (Sek.)" step="0.1" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <button onclick="saveResult()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:opacity-50" disabled>Ergebnis hinzufügen</button>
-                        </div>
-                        <div id="groupFullMsg" class="mt-4 hidden">
-                            <button onclick="finalizeGroup()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg">Punkte vergeben & Nächste Gruppe</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Spalte 2: Aktuelle Runde (Zwischenstand) -->
-                <div class="lg:col-span-1">
-                    <div class="glass-card rounded-2xl h-full overflow-hidden flex flex-col">
-                        <div class="bg-slate-700 p-4">
-                            <h2 class="text-white font-bold">Runden-Details</h2>
-                        </div>
-                        <div id="currentGroupList" class="p-4 space-y-3 flex-grow">
-                            <p class="text-slate-400 text-center py-10">Warte auf Teilnehmer...</p>
+                            <div class="p-4 bg-slate-100 rounded-xl text-center">
+                                <div id="memTimerDisplay" class="timer-display text-4xl font-mono font-bold text-slate-800 mb-3">00:00.00</div>
+                                <div class="flex gap-2">
+                                    <button id="memStartBtn" onclick="toggleTimer('memory')" class="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold">Start</button>
+                                    <button onclick="resetTimer('memory')" class="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold">Reset</button>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">Zeit-Schätzung (Sek.)</label>
+                                <input type="number" id="memGuessedTime" step="0.1" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                         </div>
                     </div>
+                    <button onclick="saveMemoryResults()" class="w-full bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg">Memory-Ergebnis speichern</button>
                 </div>
-
-                <!-- Spalte 3: Gesamtrangliste (Punkte) -->
-                <div class="lg:col-span-1">
-                    <div class="glass-card rounded-2xl h-full overflow-hidden flex flex-col border-2 border-blue-200">
-                        <div class="bg-blue-600 p-4">
-                            <h2 class="text-white font-bold text-center">🏆 HALL OF FAME (Punkte)</h2>
-                        </div>
-                        <div class="overflow-y-auto max-h-[500px]">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-50 sticky top-0">
-                                    <tr>
-                                        <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Name</th>
-                                        <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-right">Punkte</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="hallOfFameBody" class="divide-y divide-slate-100">
-                                    <!-- Punkte werden hier angezeigt -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-            <div class="text-center pt-8">
-                <button onclick="logout()" class="text-slate-500 hover:text-red-500 text-sm underline">Sitzung beenden</button>
+            <!-- CHILDHOOD PAGE -->
+            <div id="page-childhood" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-pink-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🖼️ Bilderkindheit</h2>
+                    <input type="text" id="childName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-pink-500">
+                    <div class="p-4 bg-white rounded-xl border border-slate-200">
+                        <label class="block font-bold text-slate-700 mb-2">Anzahl richtiger Bilder (0-10):</label>
+                        <input type="number" id="childImageCount" min="0" max="10" placeholder="z.B. 5" class="w-full px-3 py-2 border rounded-lg outline-none">
+                        <p class="text-xs text-slate-400 mt-2 text-center">Pro richtigem Bild gibt es 1 Punkt.</p>
+                    </div>
+                    <button onclick="saveChildhoodResults()" id="childSaveBtn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-4 rounded-xl shadow-lg transition">Punkte speichern</button>
+                </div>
             </div>
+
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition duration-300 z-50">
-        Ergebnis gespeichert!
-    </div>
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition duration-300 z-50">Nachricht</div>
 
-    <script>
-        // State Management
-        let startTime;
-        let elapsedTime = 0;
-        let timerInterval;
-        let isRunning = false;
-        
-        // Data Storage
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'timer-challenge-v2';
+
+        let currentUser = null;
+        let timers = {
+            timer: { startTime: 0, elapsed: 0, interval: null, isRunning: false },
+            memory: { startTime: 0, elapsed: 0, interval: null, isRunning: false }
+        };
         let currentGroupResults = [];
-        let globalPoints = {}; // { "Name": TotalPoints }
+        let counters = { runErrors: 0, stuckCount: 0 };
+        let leaderboardUnsubscribe = null;
 
-        const PASSWORD = "admin123";
+        window.showPage = (id) => {
+            ['home', 'timer', 'running', 'domino', 'memory', 'childhood', 'leaderboard'].forEach(p => {
+                const el = document.getElementById('page-'+p);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById('page-'+id).classList.remove('hidden');
+        };
 
-        function checkLogin() {
-            const pass = document.getElementById('adminPassword').value;
-            if (pass === PASSWORD) {
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadFromStorage();
-                renderLeaderboards();
-            } else {
-                const err = document.getElementById('loginError');
-                err.classList.remove('hidden');
-                setTimeout(() => err.classList.add('hidden'), 3000);
-            }
-        }
-
-        function logout() {
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
-            document.getElementById('adminPassword').value = '';
-        }
-
-        // Timer
-        function toggleTimer() {
-            const btn = document.getElementById('startBtn');
-            const saveBtn = document.getElementById('saveBtn');
-
-            if (!isRunning) {
-                startTime = Date.now() - elapsedTime;
-                timerInterval = setInterval(updateDisplay, 10);
-                isRunning = true;
-                btn.textContent = 'Stopp';
-                btn.classList.replace('bg-green-500', 'bg-red-500');
-                saveBtn.disabled = true;
-            } else {
-                clearInterval(timerInterval);
-                isRunning = false;
-                btn.textContent = 'Start';
-                btn.classList.replace('bg-red-500', 'bg-green-500');
-                if (currentGroupResults.length < 3) {
-                    saveBtn.disabled = false;
+        // RULE 3: Initialize Auth and THEN start queries
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
                 }
+            } catch (err) {
+                console.error("Auth Fehler:", err);
+            }
+        };
+
+        // Auth Listener - Startet Sync erst nach Login
+        onAuthStateChanged(auth, (user) => { 
+            if (user) {
+                console.log("Eingeloggt als:", user.uid);
+                syncLeaderboard(); 
+            } else {
+                if (leaderboardUnsubscribe) leaderboardUnsubscribe();
+            }
+        });
+
+        initAuth();
+
+        window.toggleAuth = (show) => {
+            document.getElementById('loginForm').classList.toggle('hidden', !show);
+            document.getElementById('registerForm').classList.toggle('hidden', show);
+        };
+
+        window.handleLogin = async () => {
+            const user = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if(!user) return showToast("Name fehlt!");
+            const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user));
+            if (snap.exists() && snap.data().password === pass) {
+                currentUser = user;
+                document.getElementById('currentUserDisplay').textContent = "Spieler: " + user;
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                showPage('home');
+            } else showToast("Login fehlgeschlagen!");
+        };
+
+        window.handleRegister = async () => {
+            const user = document.getElementById('regUsername').value.trim();
+            const pass = document.getElementById('regPassword').value.trim();
+            if(!user || !pass) return showToast("Eingabe unvollständig!");
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user), { password: pass });
+            showToast("Konto erstellt! Bitte einloggen."); toggleAuth(true);
+        };
+
+        window.logout = () => { currentUser = null; location.reload(); };
+
+        window.changeCounter = (key, val, displayId) => {
+            counters[key] = Math.max(0, counters[key] + val);
+            document.getElementById(displayId).textContent = counters[key];
+        };
+
+        // SYNC LEADERBOARD (LIVE) - RULE 1 & 2
+        function syncLeaderboard() {
+            if (leaderboardUnsubscribe) leaderboardUnsubscribe();
+
+            const scoresCollection = collection(db, 'artifacts', appId, 'public', 'data', 'scores');
+            
+            leaderboardUnsubscribe = onSnapshot(scoresCollection, (snap) => {
+                const scores = [];
+                snap.forEach(d => scores.push(d.data()));
+                
+                // RULE 2: Sort in Memory
+                scores.sort((a,b) => b.points - a.points);
+                
+                const tbody = document.getElementById('liveLeaderboardBody');
+                if(!tbody) return;
+
+                if (scores.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-slate-400">Noch keine Punkte vorhanden.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = scores.map((s, index) => {
+                    const isTop = index < 3;
+                    const rankClass = isTop ? 'font-bold text-blue-600' : 'text-slate-500';
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.';
+                    
+                    return `
+                        <tr class="hover:bg-blue-50 transition duration-150">
+                            <td class="px-6 py-4 ${rankClass}">${medal}</td>
+                            <td class="px-6 py-4 font-semibold text-slate-700">${s.name}</td>
+                            <td class="px-6 py-4 text-right font-bold text-blue-700">${(s.points || 0).toFixed(1)} <span class="text-[10px] text-slate-400">PKT</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }, (error) => {
+                console.error("Firestore Sync Error:", error);
+                const tbody = document.getElementById('liveLeaderboardBody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-red-500">Fehler beim Laden der Daten.</td></tr>`;
+            });
+        }
+
+        // --- GAME LOGIC SAVE WRAPPERS ---
+
+        async function updateGlobalScore(name, pts) {
+            if (!auth.currentUser) {
+                showToast("Bitte warten, Anmeldung läuft...");
+                return;
+            }
+            try {
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'scores', name);
+                const snap = await getDoc(ref);
+                const currentPts = snap.exists() ? (snap.data().points || 0) : 0;
+                await setDoc(ref, { points: currentPts + pts, name: name });
+            } catch (err) {
+                console.error("Speicherfehler:", err);
+                showToast("Fehler beim Speichern!");
             }
         }
 
-        function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            elapsedTime = 0;
-            updateDisplay();
-            document.getElementById('startBtn').textContent = 'Start';
-            document.getElementById('startBtn').classList.remove('bg-red-500');
-            document.getElementById('startBtn').classList.add('bg-green-500');
-            document.getElementById('saveBtn').disabled = true;
-        }
+        window.saveChildhoodResults = async () => {
+            const name = document.getElementById('childName').value.trim();
+            const count = parseInt(document.getElementById('childImageCount').value) || 0;
+            if(!name) return showToast("Name fehlt!");
+            const pts = Math.min(10, Math.max(0, count));
+            await updateGlobalScore(name, pts);
+            showToast(`${pts} Pkt für ${name} gespeichert!`);
+            document.getElementById('childName').value = '';
+            document.getElementById('childImageCount').value = '';
+            showPage('home');
+        };
 
-        function updateDisplay() {
-            if (isRunning) elapsedTime = Date.now() - startTime;
-            const minutes = Math.floor(elapsedTime / 60000);
-            const seconds = Math.floor((elapsedTime % 60000) / 1000);
-            const ms = Math.floor((elapsedTime % 1000) / 10);
-            document.getElementById('timer').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-        }
+        window.saveMemoryResults = async () => {
+            const name = document.getElementById('memName').value.trim();
+            const c1 = parseInt(document.getElementById('memCount1').value) || 0;
+            const c2 = parseInt(document.getElementById('memCount2').value) || 0;
+            const guessed = parseFloat(document.getElementById('memGuessedTime').value) || 0;
+            const actual = timers.memory.elapsed / 1000;
+            if(!name) return showToast("Name fehlt!");
 
-        // Logic for Results
-        function saveResult() {
+            let pts = 0;
+            if(c1 >= 7) pts += 2.5; else if(c1 >= 5) pts += 2; else if(c1 >= 1) pts += 1;
+            if(c2 >= 13) pts += 2.5; else if(c2 >= 11) pts += 2; else if(c2 >= 9) pts += 1.5; else if(c2 >= 5) pts += 1;
+
+            const diff = Math.abs(actual - guessed);
+            if(diff <= 2.9) pts += 2; else if(diff <= 5) pts += 1.5; else if(diff <= 10) pts += 0.5;
+
+            await updateGlobalScore(name, pts);
+            showToast(`${pts.toFixed(1)} Memory-Pkt für ${name}!`);
+            resetTimer('memory'); showPage('home');
+        };
+
+        window.saveRunResults = async () => {
+            const name = document.getElementById('runName').value.trim();
+            if(!name) return showToast("Name fehlt!");
+            let pts = (document.getElementById('runSuccess').checked ? 5 : 0) - counters.runErrors;
+            if(counters.runErrors === 0) pts += 5;
+            await updateGlobalScore(name, pts);
+            document.getElementById('runName').value = ''; counters.runErrors = 0;
+            document.getElementById('errorDisplay').textContent = "0";
+            showPage('home');
+        };
+
+        window.saveDominoResults = async () => {
+            const name = document.getElementById('dominoName').value.trim();
+            const success = document.getElementById('dominoSuccess').checked;
+            if(!name) return showToast("Name fehlt!");
+            let pts = (success ? 5 : 0) - counters.stuckCount;
+            if(success && counters.stuckCount === 0) pts += 5;
+            await updateGlobalScore(name, pts);
+            document.getElementById('dominoName').value = ''; counters.stuckCount = 0;
+            document.getElementById('stuckDisplay').textContent = "0";
+            showPage('home');
+        };
+
+        window.saveResult = () => {
             const name = document.getElementById('participantName').value.trim();
             const guessed = parseFloat(document.getElementById('guessedTime').value);
-            
-            if (!name || isNaN(guessed)) {
-                showToast("Name und Schätzung fehlen!");
-                return;
-            }
+            if(!name || isNaN(guessed)) return showToast("Eingabe prüfen!");
+            const diff = Math.abs((timers.timer.elapsed / 1000) - guessed);
+            currentGroupResults.push({ name, diff, rawDiff: diff });
+            updateGroupUI(); resetTimer('timer');
+            if (currentGroupResults.length === 3) document.getElementById('groupFullMsg').classList.remove('hidden');
+        };
 
-            if (currentGroupResults.length >= 3) {
-                showToast("Gruppe ist bereits voll!");
-                return;
-            }
+        window.finalizeGroup = async () => {
+            currentGroupResults.sort((a,b) => a.rawDiff - b.rawDiff);
+            const points = [10, 5, 1];
+            for (let i=0; i<currentGroupResults.length; i++) await updateGlobalScore(currentGroupResults[i].name, points[i] || 0);
+            currentGroupResults = []; updateGroupUI();
+            document.getElementById('groupFullMsg').classList.add('hidden');
+            showPage('home');
+        };
 
-            const actualSec = elapsedTime / 1000;
-            const diff = Math.abs(actualSec - guessed);
-
-            currentGroupResults.push({
-                name,
-                actual: actualSec.toFixed(2),
-                guessed: guessed.toFixed(2),
-                diff: diff.toFixed(2),
-                rawDiff: diff
-            });
-
-            // UI Updates
-            updateGroupUI();
-            resetTimer();
-            document.getElementById('participantName').value = '';
-            document.getElementById('guessedTime').value = '';
-            showToast(`${name} hinzugefügt`);
-
-            if (currentGroupResults.length === 3) {
-                document.getElementById('saveBtn').disabled = true;
-                document.getElementById('groupFullMsg').classList.remove('hidden');
-            }
-        }
+        // --- SHARED UTILS ---
 
         function updateGroupUI() {
-            const list = document.getElementById('currentGroupList');
-            const status = document.getElementById('groupStatus');
-            status.textContent = `${currentGroupResults.length}/3 Teilnehmer`;
+            document.getElementById('currentGroupList').innerHTML = currentGroupResults.map(r => `<div class="p-2 bg-white rounded border flex justify-between"><span>${r.name}</span> <span class="text-xs text-slate-400">Δ ${r.diff.toFixed(2)}s</span></div>`).join('');
+        }
 
-            if (currentGroupResults.length === 0) {
-                list.innerHTML = `<p class="text-slate-400 text-center py-10">Warte auf Teilnehmer...</p>`;
-                return;
+        window.toggleTimer = (type) => {
+            const t = timers[type];
+            const display = type === 'memory' ? 'memTimerDisplay' : 'timer';
+            const btn = type === 'memory' ? 'memStartBtn' : 'startBtn';
+            if (!t.isRunning) {
+                t.startTime = Date.now() - t.elapsed;
+                t.interval = setInterval(() => {
+                    t.elapsed = Date.now() - t.startTime;
+                    const min = Math.floor(t.elapsed / 60000);
+                    const sec = Math.floor((t.elapsed % 60000) / 1000);
+                    const ms = Math.floor((t.elapsed % 1000) / 10);
+                    document.getElementById(display).textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
+                }, 10);
+                t.isRunning = true;
+                document.getElementById(btn).textContent = 'Stopp';
+                if(type === 'timer') document.getElementById('saveBtn').disabled = true;
+            } else {
+                clearInterval(t.interval);
+                t.isRunning = false;
+                document.getElementById(btn).textContent = 'Start';
+                if(type === 'timer' && currentGroupResults.length < 3) document.getElementById('saveBtn').disabled = false;
             }
+        };
 
-            // Sort current group to show who is currently winning
-            const sorted = [...currentGroupResults].sort((a, b) => a.rawDiff - b.rawDiff);
-            
-            list.innerHTML = sorted.map((res, i) => `
-                <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
-                    <div>
-                        <div class="font-bold text-slate-800">${res.name}</div>
-                        <div class="text-xs text-slate-500">Ist: ${res.actual}s | Schätzung: ${res.guessed}s</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-blue-600 font-bold">±${res.diff}s</div>
-                        <div class="text-[10px] text-slate-400">Rang ${i+1}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function finalizeGroup() {
-            // Sort by difference
-            currentGroupResults.sort((a, b) => a.rawDiff - b.rawDiff);
-
-            // Assign Points
-            // 1. Platz: 10, 2. Platz: 5, 3. Platz: 1
-            const pointsMapping = [10, 5, 1];
-            
-            currentGroupResults.forEach((res, index) => {
-                const pts = pointsMapping[index] || 0;
-                globalPoints[res.name] = (globalPoints[res.name] || 0) + pts;
-            });
-
-            saveToStorage();
-            renderLeaderboards();
-            
-            // Reset for next group
-            currentGroupResults = [];
-            updateGroupUI();
-            document.getElementById('groupFullMsg').classList.add('hidden');
-            showToast("Punkte wurden der Hall of Fame gutgeschrieben!");
-        }
-
-        function renderLeaderboards() {
-            const body = document.getElementById('hallOfFameBody');
-            body.innerHTML = '';
-
-            // Convert object to array and sort by points descending
-            const sortedNames = Object.entries(globalPoints)
-                .sort(([, a], [, b]) => b - a);
-
-            if (sortedNames.length === 0) {
-                body.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Noch keine Punkte vergeben</td></tr>`;
-                return;
-            }
-
-            sortedNames.forEach(([name, pts]) => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-blue-50 transition";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm font-semibold text-slate-800">${name}</td>
-                    <td class="px-4 py-3 text-sm font-bold text-blue-700 text-right">${pts} Pkt</td>
-                `;
-                body.appendChild(row);
-            });
-        }
-
-        // Storage Persistence
-        function saveToStorage() {
-            localStorage.setItem('challenge_points', JSON.stringify(globalPoints));
-        }
-
-        function loadFromStorage() {
-            const stored = localStorage.getItem('challenge_points');
-            if (stored) {
-                globalPoints = JSON.parse(stored);
-            }
-        }
+        window.resetTimer = (type) => {
+            const t = timers[type];
+            const display = type === 'memory' ? 'memTimerDisplay' : 'timer';
+            const btn = type === 'memory' ? 'memStartBtn' : 'startBtn';
+            clearInterval(t.interval);
+            t.isRunning = false; t.elapsed = 0;
+            document.getElementById(display).textContent = "00:00.00";
+            document.getElementById(btn).textContent = 'Start';
+            if(type === 'timer') document.getElementById('saveBtn').disabled = true;
+        };
 
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.remove('opacity-0', 'translate-y-20');
-            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-20'), 2500);
+            const t = document.getElementById('toast');
+            if(!t) return;
+            t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-20');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-20'), 3000);
         }
     </script>
 </body>
