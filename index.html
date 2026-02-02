@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zeit-Schätz-Challenge</title>
+    <title>Zeit-Schätz-Challenge - Gruppen-Modus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -21,92 +21,105 @@
         .timer-display {
             font-variant-numeric: tabular-nums;
         }
+        .ranking-transition {
+            transition: all 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div id="app" class="max-w-4xl mx-auto">
+    <div id="app" class="max-w-5xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-10">
             <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Zeit-Schätz-<span class="text-blue-600">Challenge</span></h1>
-            <p class="text-slate-600 mt-2">Wer hat das beste Zeitgefühl?</p>
+            <p class="text-slate-600 mt-2">Punkte-System: 1. Platz (10 Pkt) | 2. Platz (5 Pkt) | 3. Platz (1 Pkt)</p>
         </header>
 
         <!-- Login Section -->
         <div id="loginSection" class="glass-card rounded-2xl p-8 max-w-md mx-auto mb-10">
-            <h2 class="text-xl font-semibold mb-4">Admin Login</h2>
+            <h2 class="text-xl font-semibold mb-4 text-center">Admin Login</h2>
             <div class="space-y-4">
                 <input type="password" id="adminPassword" placeholder="Passwort (Standard: admin123)" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Anmelden</button>
             </div>
-            <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Falsches Passwort!</p>
+            <p id="loginError" class="text-red-500 text-sm mt-2 hidden text-center">Falsches Passwort!</p>
         </div>
 
-        <!-- Main Admin Panel (Hidden by default) -->
+        <!-- Main Admin Panel -->
         <div id="adminPanel" class="hidden space-y-8">
             
-            <!-- Stopwatch & Entry Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Stoppuhr -->
-                <div class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center">
-                    <div id="timer" class="timer-display text-6xl font-bold text-slate-800 mb-6">00:00.00</div>
-                    <div class="flex space-x-3">
-                        <button id="startBtn" onclick="toggleTimer()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold transition">Start</button>
-                        <button id="resetBtn" onclick="resetTimer()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-2 rounded-full font-semibold transition">Reset</button>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Spalte 1: Stoppuhr & Eingabe -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center">
+                        <div id="timer" class="timer-display text-5xl font-bold text-slate-800 mb-6">00:00.00</div>
+                        <div class="flex space-x-2">
+                            <button id="startBtn" onclick="toggleTimer()" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold transition">Start</button>
+                            <button id="resetBtn" onclick="resetTimer()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-full font-semibold transition">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-slate-800">Aktuelle Gruppe</h2>
+                            <span id="groupStatus" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">0/3 Teilnehmer</span>
+                        </div>
+                        <div class="space-y-4">
+                            <input type="text" id="participantName" placeholder="Name" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="number" id="guessedTime" placeholder="Schätzung (Sek.)" step="0.1" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <button onclick="saveResult()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:opacity-50" disabled>Ergebnis hinzufügen</button>
+                        </div>
+                        <div id="groupFullMsg" class="mt-4 hidden">
+                            <button onclick="finalizeGroup()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg">Punkte vergeben & Nächste Gruppe</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Teilnehmer Daten -->
-                <div class="glass-card rounded-2xl p-8">
-                    <h2 class="text-xl font-semibold mb-4">Teilnehmer eintragen</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Name des Teilnehmers</label>
-                            <input type="text" id="participantName" placeholder="z.B. Max Mustermann" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <!-- Spalte 2: Aktuelle Runde (Zwischenstand) -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card rounded-2xl h-full overflow-hidden flex flex-col">
+                        <div class="bg-slate-700 p-4">
+                            <h2 class="text-white font-bold">Runden-Details</h2>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Geschätzte Zeit (Sekunden)</label>
-                            <input type="number" id="guessedTime" placeholder="z.B. 10.5" step="0.1" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div id="currentGroupList" class="p-4 space-y-3 flex-grow">
+                            <p class="text-slate-400 text-center py-10">Warte auf Teilnehmer...</p>
                         </div>
-                        <button onclick="saveResult()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:opacity-50" disabled>Ergebnis speichern</button>
                     </div>
                 </div>
+
+                <!-- Spalte 3: Gesamtrangliste (Punkte) -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card rounded-2xl h-full overflow-hidden flex flex-col border-2 border-blue-200">
+                        <div class="bg-blue-600 p-4">
+                            <h2 class="text-white font-bold text-center">🏆 HALL OF FAME (Punkte)</h2>
+                        </div>
+                        <div class="overflow-y-auto max-h-[500px]">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 sticky top-0">
+                                    <tr>
+                                        <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Name</th>
+                                        <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-right">Punkte</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hallOfFameBody" class="divide-y divide-slate-100">
+                                    <!-- Punkte werden hier angezeigt -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Leaderboard -->
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="bg-slate-800 p-4">
-                    <h2 class="text-white font-bold text-lg">Aktuelle Rangliste</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Rang</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Echt</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Geschätzt</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Differenz</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboardBody" class="divide-y divide-slate-100">
-                            <!-- Daten werden hier eingefügt -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="emptyState" class="p-10 text-center text-slate-400">
-                    Noch keine Ergebnisse vorhanden.
-                </div>
-            </div>
-
-            <div class="text-center">
-                <button onclick="logout()" class="text-slate-500 hover:text-red-500 text-sm underline">Abmelden</button>
+            <div class="text-center pt-8">
+                <button onclick="logout()" class="text-slate-500 hover:text-red-500 text-sm underline">Sitzung beenden</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition duration-300">
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition duration-300 z-50">
         Ergebnis gespeichert!
     </div>
 
@@ -116,17 +129,20 @@
         let elapsedTime = 0;
         let timerInterval;
         let isRunning = false;
-        let results = [];
+        
+        // Data Storage
+        let currentGroupResults = [];
+        let globalPoints = {}; // { "Name": TotalPoints }
 
         const PASSWORD = "admin123";
 
-        // Login Logic
         function checkLogin() {
             const pass = document.getElementById('adminPassword').value;
             if (pass === PASSWORD) {
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
-                renderLeaderboard();
+                loadFromStorage();
+                renderLeaderboards();
             } else {
                 const err = document.getElementById('loginError');
                 err.classList.remove('hidden');
@@ -140,28 +156,26 @@
             document.getElementById('adminPassword').value = '';
         }
 
-        // Timer Logic
+        // Timer
         function toggleTimer() {
             const btn = document.getElementById('startBtn');
             const saveBtn = document.getElementById('saveBtn');
 
             if (!isRunning) {
-                // Start
                 startTime = Date.now() - elapsedTime;
                 timerInterval = setInterval(updateDisplay, 10);
                 isRunning = true;
                 btn.textContent = 'Stopp';
                 btn.classList.replace('bg-green-500', 'bg-red-500');
-                btn.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
                 saveBtn.disabled = true;
             } else {
-                // Stopp
                 clearInterval(timerInterval);
                 isRunning = false;
                 btn.textContent = 'Start';
                 btn.classList.replace('bg-red-500', 'bg-green-500');
-                btn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
-                saveBtn.disabled = false;
+                if (currentGroupResults.length < 3) {
+                    saveBtn.disabled = false;
+                }
             }
         }
 
@@ -170,106 +184,151 @@
             isRunning = false;
             elapsedTime = 0;
             updateDisplay();
-            const btn = document.getElementById('startBtn');
-            btn.textContent = 'Start';
-            btn.classList.remove('bg-red-500');
-            btn.classList.add('bg-green-500');
+            document.getElementById('startBtn').textContent = 'Start';
+            document.getElementById('startBtn').classList.remove('bg-red-500');
+            document.getElementById('startBtn').classList.add('bg-green-500');
             document.getElementById('saveBtn').disabled = true;
         }
 
         function updateDisplay() {
-            if (isRunning) {
-                elapsedTime = Date.now() - startTime;
-            }
-            
+            if (isRunning) elapsedTime = Date.now() - startTime;
             const minutes = Math.floor(elapsedTime / 60000);
             const seconds = Math.floor((elapsedTime % 60000) / 1000);
-            const milliseconds = Math.floor((elapsedTime % 1000) / 10);
-
-            const display = 
-                (minutes < 10 ? '0' : '') + minutes + ':' +
-                (seconds < 10 ? '0' : '') + seconds + '.' +
-                (milliseconds < 10 ? '0' : '') + milliseconds;
-            
-            document.getElementById('timer').textContent = display;
+            const ms = Math.floor((elapsedTime % 1000) / 10);
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
         }
 
-        // Result Logic
+        // Logic for Results
         function saveResult() {
-            const name = document.getElementById('participantName').value;
+            const name = document.getElementById('participantName').value.trim();
             const guessed = parseFloat(document.getElementById('guessedTime').value);
             
             if (!name || isNaN(guessed)) {
-                showToast("Bitte Name und Schätzung eingeben!");
+                showToast("Name und Schätzung fehlen!");
                 return;
             }
 
-            const actualSeconds = elapsedTime / 1000;
-            const diff = Math.abs(actualSeconds - guessed);
+            if (currentGroupResults.length >= 3) {
+                showToast("Gruppe ist bereits voll!");
+                return;
+            }
 
-            const entry = {
-                id: Date.now(),
-                name: name,
-                actual: actualSeconds.toFixed(2),
+            const actualSec = elapsedTime / 1000;
+            const diff = Math.abs(actualSec - guessed);
+
+            currentGroupResults.push({
+                name,
+                actual: actualSec.toFixed(2),
                 guessed: guessed.toFixed(2),
                 diff: diff.toFixed(2),
                 rawDiff: diff
-            };
+            });
 
-            results.push(entry);
-            // Sort by difference (ascending)
-            results.sort((a, b) => a.rawDiff - b.rawDiff);
-
-            renderLeaderboard();
-            showToast("Ergebnis für " + name + " gespeichert!");
-            
-            // Clean up
+            // UI Updates
+            updateGroupUI();
+            resetTimer();
             document.getElementById('participantName').value = '';
             document.getElementById('guessedTime').value = '';
-            resetTimer();
+            showToast(`${name} hinzugefügt`);
+
+            if (currentGroupResults.length === 3) {
+                document.getElementById('saveBtn').disabled = true;
+                document.getElementById('groupFullMsg').classList.remove('hidden');
+            }
         }
 
-        function renderLeaderboard() {
-            const body = document.getElementById('leaderboardBody');
-            const empty = document.getElementById('emptyState');
-            
-            body.innerHTML = '';
-            
-            if (results.length === 0) {
-                empty.classList.remove('hidden');
+        function updateGroupUI() {
+            const list = document.getElementById('currentGroupList');
+            const status = document.getElementById('groupStatus');
+            status.textContent = `${currentGroupResults.length}/3 Teilnehmer`;
+
+            if (currentGroupResults.length === 0) {
+                list.innerHTML = `<p class="text-slate-400 text-center py-10">Warte auf Teilnehmer...</p>`;
                 return;
             }
+
+            // Sort current group to show who is currently winning
+            const sorted = [...currentGroupResults].sort((a, b) => a.rawDiff - b.rawDiff);
             
-            empty.classList.add('hidden');
+            list.innerHTML = sorted.map((res, i) => `
+                <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-slate-800">${res.name}</div>
+                        <div class="text-xs text-slate-500">Ist: ${res.actual}s | Schätzung: ${res.guessed}s</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-blue-600 font-bold">±${res.diff}s</div>
+                        <div class="text-[10px] text-slate-400">Rang ${i+1}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            results.forEach((res, index) => {
+        function finalizeGroup() {
+            // Sort by difference
+            currentGroupResults.sort((a, b) => a.rawDiff - b.rawDiff);
+
+            // Assign Points
+            // 1. Platz: 10, 2. Platz: 5, 3. Platz: 1
+            const pointsMapping = [10, 5, 1];
+            
+            currentGroupResults.forEach((res, index) => {
+                const pts = pointsMapping[index] || 0;
+                globalPoints[res.name] = (globalPoints[res.name] || 0) + pts;
+            });
+
+            saveToStorage();
+            renderLeaderboards();
+            
+            // Reset for next group
+            currentGroupResults = [];
+            updateGroupUI();
+            document.getElementById('groupFullMsg').classList.add('hidden');
+            showToast("Punkte wurden der Hall of Fame gutgeschrieben!");
+        }
+
+        function renderLeaderboards() {
+            const body = document.getElementById('hallOfFameBody');
+            body.innerHTML = '';
+
+            // Convert object to array and sort by points descending
+            const sortedNames = Object.entries(globalPoints)
+                .sort(([, a], [, b]) => b - a);
+
+            if (sortedNames.length === 0) {
+                body.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Noch keine Punkte vergeben</td></tr>`;
+                return;
+            }
+
+            sortedNames.forEach(([name, pts]) => {
                 const row = document.createElement('tr');
-                row.className = "hover:bg-slate-50 transition";
-                
-                // Rank Styling
-                let rankClass = "text-slate-700";
-                if(index === 0) rankClass = "text-yellow-600 font-bold";
-                if(index === 1) rankClass = "text-slate-400 font-bold";
-                if(index === 2) rankClass = "text-orange-400 font-bold";
-
+                row.className = "hover:bg-blue-50 transition";
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm ${rankClass}">#${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${res.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${res.actual}s</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${res.guessed}s</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">±${res.diff}s</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-800">${name}</td>
+                    <td class="px-4 py-3 text-sm font-bold text-blue-700 text-right">${pts} Pkt</td>
                 `;
                 body.appendChild(row);
             });
+        }
+
+        // Storage Persistence
+        function saveToStorage() {
+            localStorage.setItem('challenge_points', JSON.stringify(globalPoints));
+        }
+
+        function loadFromStorage() {
+            const stored = localStorage.getItem('challenge_points');
+            if (stored) {
+                globalPoints = JSON.parse(stored);
+            }
         }
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.classList.remove('opacity-0', 'translate-y-20');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-20');
-            }, 3000);
+            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-20'), 2500);
         }
     </script>
 </body>
