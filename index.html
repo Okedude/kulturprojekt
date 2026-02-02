@@ -33,16 +33,8 @@
             <p class="text-slate-600 mt-2">Sammle Punkte in verschiedenen Disziplinen!</p>
         </header>
 
-        <!-- Loading State -->
-        <div id="loadingOverlay" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
-            <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-                <p class="mt-4 text-slate-600 font-medium">Verbindung wird hergestellt...</p>
-            </div>
-        </div>
-
         <!-- Auth Section -->
-        <div id="authSection" class="max-w-md mx-auto hidden">
+        <div id="authSection" class="max-w-md mx-auto">
             <div id="loginForm" class="glass-card rounded-2xl p-8 mb-6">
                 <h2 class="text-2xl font-bold mb-6 text-slate-800 text-center">Anmelden</h2>
                 <div class="space-y-4">
@@ -143,7 +135,7 @@
                                 </tr>
                             </thead>
                             <tbody id="liveLeaderboardBody" class="divide-y divide-slate-100">
-                                <tr><td colspan="3" class="text-center py-10 text-slate-400 italic">Lade Rangliste...</td></tr>
+                                <tr><td colspan="3" class="text-center py-10 text-slate-400 italic">Verbinde mit Datenbank...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -154,9 +146,9 @@
             <div id="page-timer" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="space-y-6">
                     <div class="glass-card rounded-2xl p-6 flex flex-col items-center">
-                        <div id="timer" class="timer-display text-5xl font-bold text-slate-800 mb-6">00:00.00</div>
+                        <div id="timerDisplay" class="timer-display text-5xl font-bold text-slate-800 mb-6">00:00.00</div>
                         <div class="flex space-x-2">
-                            <button id="startBtn" onclick="toggleTimer('timer')" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold">Start</button>
+                            <button id="timerStartBtn" onclick="toggleTimer('timer')" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold">Start</button>
                             <button onclick="resetTimer('timer')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-full font-semibold">Reset</button>
                         </div>
                     </div>
@@ -176,7 +168,140 @@
                 </div>
             </div>
 
-            <!-- Weitere Seiten (Laufen, Domino, Memory, etc.) bleiben gleich... -->
+            <!-- RUNNING PAGE -->
+            <div id="page-running" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">🏃 Laufen</h2>
+                    <input type="text" id="runName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="flex items-center justify-between p-4 bg-white rounded-xl border">
+                        <span class="font-bold">Durchlauf geschafft? (+5)</span>
+                        <input type="checkbox" id="runSuccess" class="w-6 h-6">
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border">
+                        <div class="flex justify-between items-center mb-2">
+                            <span>Rechenfehler:</span>
+                            <span id="errorDisplay" class="font-bold text-red-500">0</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="changeCounter('runErrors', -1, 'errorDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">-</button>
+                            <button onclick="changeCounter('runErrors', 1, 'errorDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">+</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 text-center">0 Fehler = +5 Bonus-Punkte!</p>
+                    </div>
+                    <button onclick="saveRunResults()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl">Speichern</button>
+                </div>
+            </div>
+
+            <!-- DOMINO PAGE -->
+            <div id="page-domino" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">🀄 Domino</h2>
+                    <input type="text" id="dominoName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="flex items-center justify-between p-4 bg-white rounded-xl border">
+                        <span class="font-bold">In Zeit aufgestellt? (+5)</span>
+                        <input type="checkbox" id="dominoSuccess" class="w-6 h-6">
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border">
+                        <div class="flex justify-between items-center mb-2"><span>Gestoppt:</span><span id="stuckDisplay" class="font-bold text-orange-500">0</span></div>
+                        <div class="flex gap-2">
+                            <button onclick="changeCounter('stuckCount', -1, 'stuckDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">-</button>
+                            <button onclick="changeCounter('stuckCount', 1, 'stuckDisplay')" class="flex-1 bg-slate-100 py-2 rounded-lg">+</button>
+                        </div>
+                    </div>
+                    <button onclick="saveDominoResults()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl">Speichern</button>
+                </div>
+            </div>
+
+            <!-- MEMORY PAGE -->
+            <div id="page-memory" class="hidden max-w-3xl mx-auto space-y-6">
+                <div class="glass-card rounded-2xl p-8 space-y-6 border-b-8 border-orange-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🧠 Merken von Dingen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <input type="text" id="memName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">1. Durchgang (Objekte)</label>
+                                <input type="number" id="memCount1" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">2. Durchgang (Objekte)</label>
+                                <input type="number" id="memCount2" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-slate-100 rounded-xl text-center">
+                                <div id="memTimerDisplay" class="timer-display text-4xl font-mono font-bold text-slate-800 mb-3">00:00.00</div>
+                                <div class="flex gap-2">
+                                    <button id="memTimerStartBtn" onclick="toggleTimer('memory')" class="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold">Start</button>
+                                    <button onclick="resetTimer('memory')" class="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold">Reset</button>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-white rounded-xl border">
+                                <label class="block font-bold mb-2">Zeit-Schätzung (Sek.)</label>
+                                <input type="number" id="memGuessedTime" step="0.1" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="saveMemoryResults()" class="w-full bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg">Memory-Ergebnis speichern</button>
+                </div>
+            </div>
+
+            <!-- CHILDHOOD PAGE -->
+            <div id="page-childhood" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-pink-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🖼️ Bilderkindheit</h2>
+                    <input type="text" id="childName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-pink-500">
+                    <div class="p-4 bg-white rounded-xl border border-slate-200">
+                        <label class="block font-bold text-slate-700 mb-2">Anzahl richtiger Bilder (0-10):</label>
+                        <input type="number" id="childImageCount" min="0" max="10" placeholder="z.B. 5" class="w-full px-3 py-2 border rounded-lg outline-none">
+                        <p class="text-xs text-slate-400 mt-2 text-center">Pro richtigem Bild gibt es 1 Punkt.</p>
+                    </div>
+                    <button onclick="saveChildhoodResults()" id="childSaveBtn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-4 rounded-xl shadow-lg transition">Punkte speichern</button>
+                </div>
+            </div>
+
+            <!-- SCHULE PAGE -->
+            <div id="page-school" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-yellow-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🏫 Schule</h2>
+                    <input type="text" id="schoolName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="p-4 bg-white rounded-xl border border-slate-200">
+                        <label class="block font-bold text-slate-700 mb-2">Erreichte Punkte:</label>
+                        <input type="number" id="schoolPoints" placeholder="Punkte eingeben" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <button onclick="saveSchoolResults()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-xl shadow-lg transition">Speichern</button>
+                </div>
+            </div>
+
+            <!-- ZEICHNEN PAGE -->
+            <div id="page-drawing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-6">
+                    <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-cyan-500">
+                        <h2 class="text-3xl font-bold text-center text-slate-800">🎨 Zeichnen</h2>
+                        <p class="text-sm text-center text-slate-500 italic">Bewerte die Zeichnungen einer 3er-Gruppe</p>
+                        
+                        <div class="space-y-3">
+                            <input type="text" id="drawName" placeholder="Name des Zeichners" class="w-full px-4 py-2 rounded-lg border">
+                            <select id="drawRank" class="w-full px-4 py-2 rounded-lg border bg-white">
+                                <option value="" disabled selected>Bewertung wählen...</option>
+                                <option value="10">Platz 1 (10 Punkte)</option>
+                                <option value="5">Platz 2 (5 Punkte)</option>
+                                <option value="1">Platz 3 (1 Punkte)</option>
+                            </select>
+                            <button onclick="addDrawingToGroup()" class="w-full bg-cyan-600 text-white font-bold py-3 rounded-xl shadow-md">Zur Gruppe hinzufügen</button>
+                        </div>
+
+                        <div id="drawGroupFullMsg" class="mt-4 hidden">
+                            <button onclick="finalizeDrawingGroup()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">Gruppe abschließen & speichern</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <h3 class="font-bold border-b pb-2 mb-4">Gruppen-Bewertung (Zeichnen)</h3>
+                    <div id="drawingGroupList" class="space-y-2"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -187,57 +312,60 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Initialisierung verzögern, um auf Umgebungsvariablen zu warten
-        async function startApp() {
-            try {
-                let config;
-                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                    config = JSON.parse(__firebase_config);
-                } else {
-                    console.warn("Firebase Config nicht gefunden, nutze Platzhalter (funktioniert nur in lokaler Entwicklung)");
-                    // Hier keine echten Keys einfügen, sondern auf die Umgebung warten
-                    return; 
-                }
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "placeholder",
+            authDomain: "placeholder",
+            projectId: "placeholder",
+            storageBucket: "placeholder",
+            messagingSenderId: "placeholder",
+            appId: "placeholder"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'timer-challenge-v2';
 
-                const app = initializeApp(config);
-                const auth = getAuth(app);
-                const db = getFirestore(app);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'timer-challenge-v2';
+        let currentUser = null;
+        let timers = {
+            timer: { startTime: 0, elapsed: 0, interval: null, isRunning: false },
+            memory: { startTime: 0, elapsed: 0, interval: null, isRunning: false }
+        };
+        let currentGroupResults = [];
+        let drawingGroupResults = [];
+        let counters = { runErrors: 0, stuckCount: 0 };
+        let leaderboardUnsubscribe = null;
 
-                window.db = db;
-                window.auth = auth;
-                window.appId = appId;
+        // UI Helpers
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+        };
 
-                // Authentifizierung
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+        window.showPage = (id) => {
+            ['home', 'timer', 'running', 'domino', 'memory', 'childhood', 'school', 'drawing', 'leaderboard'].forEach(p => {
+                const el = document.getElementById('page-'+p);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById('page-'+id).classList.remove('hidden');
+        };
 
-                onAuthStateChanged(auth, (user) => {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    if (user) {
-                        document.getElementById('authSection').classList.remove('hidden');
-                        syncLeaderboard();
-                    }
-                });
+        window.toggleAuth = (show) => {
+            document.getElementById('loginForm').classList.toggle('hidden', !show);
+            document.getElementById('registerForm').classList.toggle('hidden', show);
+        };
 
-            } catch (err) {
-                console.error("Firebase Start Fehler:", err);
-                document.getElementById('loadingOverlay').innerHTML = `<div class='text-red-500 p-4 bg-white rounded-lg shadow'>Verbindungsfehler. Bitte Seite neu laden.</div>`;
-            }
-        }
-
-        // Globale Funktionen für das UI zugänglich machen
+        // Auth Logic
         window.handleLogin = async () => {
             const user = document.getElementById('loginUsername').value.trim();
             const pass = document.getElementById('loginPassword').value.trim();
             if(!user) return showToast("Name fehlt!");
             try {
-                const snap = await getDoc(doc(window.db, 'artifacts', window.appId, 'public', 'data', 'users', user));
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user));
                 if (snap.exists() && snap.data().password === pass) {
-                    window.currentUser = user;
+                    currentUser = user;
                     document.getElementById('currentUserDisplay').textContent = "Spieler: " + user;
                     document.getElementById('authSection').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
@@ -251,14 +379,81 @@
             const pass = document.getElementById('regPassword').value.trim();
             if(!user || !pass) return showToast("Eingabe unvollständig!");
             try {
-                await setDoc(doc(window.db, 'artifacts', window.appId, 'public', 'data', 'users', user), { password: pass });
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user), { password: pass });
                 showToast("Konto erstellt! Bitte einloggen."); window.toggleAuth(true);
             } catch (e) { showToast("Registrierung fehlgeschlagen."); }
         };
 
+        window.logout = () => { currentUser = null; location.reload(); };
+
+        // Game Logic Helpers
+        window.changeCounter = (key, val, displayId) => {
+            counters[key] = Math.max(0, counters[key] + val);
+            document.getElementById(displayId).textContent = counters[key];
+        };
+
+        window.toggleTimer = (type) => {
+            const t = timers[type];
+            const btn = document.getElementById(`${type}TimerStartBtn`) || document.getElementById(`${type}StartBtn`);
+            const display = document.getElementById(`${type}TimerDisplay`) || document.getElementById(`${type}Display`);
+            
+            if (!t.isRunning) {
+                t.startTime = Date.now() - t.elapsed;
+                t.interval = setInterval(() => {
+                    t.elapsed = Date.now() - t.startTime;
+                    updateTimerDisplay(type);
+                }, 10);
+                t.isRunning = true;
+                btn.textContent = 'Stopp';
+                btn.className = btn.className.replace('bg-green-500', 'bg-red-500');
+                if(type === 'timer') document.getElementById('saveBtn').disabled = true;
+            } else {
+                clearInterval(t.interval);
+                t.isRunning = false;
+                btn.textContent = 'Start';
+                btn.className = btn.className.replace('bg-red-500', 'bg-green-500');
+                if(type === 'timer') document.getElementById('saveBtn').disabled = false;
+            }
+        };
+
+        window.resetTimer = (type) => {
+            const t = timers[type];
+            clearInterval(t.interval);
+            t.elapsed = 0;
+            t.isRunning = false;
+            updateTimerDisplay(type);
+            const btn = document.getElementById(`${type}TimerStartBtn`) || document.getElementById(`${type}StartBtn`);
+            btn.textContent = 'Start';
+            btn.className = btn.className.replace('bg-red-500', 'bg-green-500');
+            if(type === 'timer') document.getElementById('saveBtn').disabled = true;
+        };
+
+        function updateTimerDisplay(type) {
+            const t = timers[type];
+            const ms = t.elapsed % 1000;
+            const s = Math.floor(t.elapsed / 1000) % 60;
+            const m = Math.floor(t.elapsed / 60000);
+            const str = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${Math.floor(ms/10).toString().padStart(2, '0')}`;
+            const display = document.getElementById(`${type}TimerDisplay`) || document.getElementById(`${type}Display`);
+            if(display) display.textContent = str;
+        }
+
+        // Firebase Sync
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => { if (user) syncLeaderboard(); });
+        initAuth();
+
         function syncLeaderboard() {
-            const scoresCollection = collection(window.db, 'artifacts', window.appId, 'public', 'data', 'scores');
-            onSnapshot(scoresCollection, (snap) => {
+            if (leaderboardUnsubscribe) leaderboardUnsubscribe();
+            const scoresCollection = collection(db, 'artifacts', appId, 'public', 'data', 'scores');
+            leaderboardUnsubscribe = onSnapshot(scoresCollection, (snap) => {
                 const scores = [];
                 snap.forEach(d => scores.push(d.data()));
                 scores.sort((a,b) => b.points - a.points);
@@ -266,42 +461,122 @@
                 if(!tbody) return;
                 tbody.innerHTML = scores.map((s, index) => {
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.';
-                    return `<tr class="hover:bg-blue-50"><td class="px-6 py-4">${medal}</td><td class="px-6 py-4 font-semibold">${s.name}</td><td class="px-6 py-4 text-right font-bold">${(s.points || 0).toFixed(1)} Pkt</td></tr>`;
-                }).join('');
-            });
+                    return `<tr class="hover:bg-blue-50 transition">
+                        <td class="px-6 py-4 font-bold ${index < 3 ? 'text-blue-600' : 'text-slate-500'}">${medal}</td>
+                        <td class="px-6 py-4 font-semibold text-slate-700">${s.name}</td>
+                        <td class="px-6 py-4 text-right font-bold text-blue-700">${(s.points || 0).toFixed(1)} P</td>
+                    </tr>`;
+                }).join('') || '<tr><td colspan="3" class="text-center py-4">Noch keine Daten.</td></tr>';
+            }, (err) => console.error("Snapshot error", err));
         }
 
-        window.updateGlobalScore = async (name, pts) => {
-            if (!window.auth.currentUser) return;
-            const ref = doc(window.db, 'artifacts', window.appId, 'public', 'data', 'scores', name);
+        async function updateGlobalScore(name, pts) {
+            if (!auth.currentUser) return;
+            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'scores', name);
             const snap = await getDoc(ref);
             const currentPts = snap.exists() ? (snap.data().points || 0) : 0;
             await setDoc(ref, { points: currentPts + pts, name: name });
+        }
+
+        // Challenge Specific Saves
+        window.saveResult = () => {
+            const name = document.getElementById('participantName').value.trim();
+            const guess = parseFloat(document.getElementById('guessedTime').value);
+            const actual = timers.timer.elapsed / 1000;
+            if(!name || isNaN(guess)) return showToast("Bitte Name und Schätzung eingeben!");
+            const diff = Math.abs(guess - actual);
+            currentGroupResults.push({ name, diff });
+            updateGroupUI();
+            document.getElementById('participantName').value = '';
+            document.getElementById('guessedTime').value = '';
+            if(currentGroupResults.length === 3) document.getElementById('groupFullMsg').classList.remove('hidden');
         };
 
-        // UI Helpers
-        window.showPage = (id) => {
-            const pages = ['home', 'timer', 'leaderboard']; // Erweitern nach Bedarf
-            pages.forEach(p => {
-                const el = document.getElementById('page-'+p);
-                if(el) el.classList.toggle('hidden', p !== id);
-            });
+        window.finalizeGroup = async () => {
+            currentGroupResults.sort((a,b) => a.diff - b.diff);
+            const pts = [10, 5, 1];
+            for(let i=0; i<3; i++) await updateGlobalScore(currentGroupResults[i].name, pts[i]);
+            currentGroupResults = [];
+            updateGroupUI();
+            document.getElementById('groupFullMsg').classList.add('hidden');
+            showToast("Gruppe gespeichert!"); showPage('home');
         };
 
-        window.toggleAuth = (show) => {
-            document.getElementById('loginForm').classList.toggle('hidden', !show);
-            document.getElementById('registerForm').classList.toggle('hidden', show);
+        function updateGroupUI() {
+            document.getElementById('currentGroupList').innerHTML = currentGroupResults.map(r => 
+                `<div class="p-2 bg-white rounded border flex justify-between">
+                    <span class="font-bold">${r.name}</span>
+                    <span class="text-xs text-slate-500">Abw: ${r.diff.toFixed(2)}s</span>
+                </div>`
+            ).join('');
+        }
+
+        window.saveRunResults = async () => {
+            const name = document.getElementById('runName').value.trim();
+            if(!name) return showToast("Name fehlt!");
+            let pts = document.getElementById('runSuccess').checked ? 5 : 0;
+            if(counters.runErrors === 0) pts += 5;
+            await updateGlobalScore(name, pts);
+            showToast("Laufen gespeichert!"); showPage('home');
         };
 
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-20');
-            setTimeout(() => t.classList.add('opacity-0', 'translate-y-20'), 3000);
+        window.saveDominoResults = async () => {
+            const name = document.getElementById('dominoName').value.trim();
+            if(!name) return showToast("Name fehlt!");
+            let pts = document.getElementById('dominoSuccess').checked ? 5 : 0;
+            await updateGlobalScore(name, pts);
+            showToast("Domino gespeichert!"); showPage('home');
         };
 
-        // Startvorgang
-        setTimeout(startApp, 500);
+        window.saveMemoryResults = async () => {
+            const name = document.getElementById('memName').value.trim();
+            const c1 = parseInt(document.getElementById('memCount1').value) || 0;
+            const c2 = parseInt(document.getElementById('memCount2').value) || 0;
+            const guess = parseFloat(document.getElementById('memGuessedTime').value) || 0;
+            const actual = timers.memory.elapsed / 1000;
+            if(!name) return showToast("Name fehlt!");
+            let pts = 0;
+            if(c1 >= 7) pts += 2.5; else if(c1 >= 5) pts += 2; else if(c1 >= 1) pts += 1;
+            if(c2 >= 7) pts += 2.5; else if(c2 >= 5) pts += 2; else if(c2 >= 1) pts += 1;
+            if(Math.abs(guess - actual) < 1) pts += 5;
+            await updateGlobalScore(name, pts);
+            showToast(`${pts} Pkt gespeichert!`); showPage('home');
+        };
 
+        window.saveChildhoodResults = async () => {
+            const name = document.getElementById('childName').value.trim();
+            const val = parseInt(document.getElementById('childImageCount').value) || 0;
+            if(!name) return showToast("Name fehlt!");
+            await updateGlobalScore(name, Math.min(10, val));
+            showToast("Kindheit gespeichert!"); showPage('home');
+        };
+
+        window.saveSchoolResults = async () => {
+            const name = document.getElementById('schoolName').value.trim();
+            const pts = parseFloat(document.getElementById('schoolPoints').value) || 0;
+            if(!name) return showToast("Name fehlt!");
+            await updateGlobalScore(name, pts);
+            showToast("Schule gespeichert!"); showPage('home');
+        };
+
+        window.addDrawingToGroup = () => {
+            const name = document.getElementById('drawName').value.trim();
+            const pts = parseInt(document.getElementById('drawRank').value);
+            if(!name || !pts) return showToast("Name oder Rang fehlt!");
+            if(drawingGroupResults.some(r => r.pts === pts)) return showToast("Rang bereits belegt!");
+            drawingGroupResults.push({ name, pts });
+            document.getElementById('drawingGroupList').innerHTML = drawingGroupResults.map(r => 
+                `<div class="p-2 bg-white rounded flex justify-between"><span>${r.name}</span><b>${r.pts}P</b></div>`
+            ).join('');
+            if(drawingGroupResults.length === 3) document.getElementById('drawGroupFullMsg').classList.remove('hidden');
+        };
+
+        window.finalizeDrawingGroup = async () => {
+            for(let r of drawingGroupResults) await updateGlobalScore(r.name, r.pts);
+            drawingGroupResults = [];
+            document.getElementById('drawGroupFullMsg').classList.add('hidden');
+            showToast("Zeichnen gespeichert!"); showPage('home');
+        };
     </script>
 </body>
 </html>
