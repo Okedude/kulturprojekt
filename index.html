@@ -101,6 +101,16 @@
                     <h2 class="text-xl font-bold text-slate-800">Bilderkindheit</h2>
                     <p class="text-xs text-slate-500 mt-2">Erkenne die Bilder</p>
                 </div>
+                <div onclick="showPage('school')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-yellow-500">
+                    <div class="text-5xl mb-4">🏫</div>
+                    <h2 class="text-xl font-bold text-slate-800">Schule</h2>
+                    <p class="text-xs text-slate-500 mt-2">Punkte eintragen</p>
+                </div>
+                <div onclick="showPage('drawing')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-cyan-500">
+                    <div class="text-5xl mb-4">🎨</div>
+                    <h2 class="text-xl font-bold text-slate-800">Zeichnen</h2>
+                    <p class="text-xs text-slate-500 mt-2">Wer zeichnet am besten?</p>
+                </div>
                 <div onclick="showPage('leaderboard')" class="glass-card p-6 rounded-3xl text-center cursor-pointer hover:scale-105 transition transform border-b-4 border-slate-500 bg-slate-50">
                     <div class="text-5xl mb-4">📊</div>
                     <h2 class="text-xl font-bold text-slate-800">Live-Rangliste</h2>
@@ -147,12 +157,13 @@
                         <input type="number" id="guessedTime" placeholder="Schätzung (Sek.)" step="0.1" class="w-full px-4 py-2 rounded-lg border mb-4">
                         <button onclick="saveResult()" id="saveBtn" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg disabled:opacity-50" disabled>Ergebnis hinzufügen</button>
                         <div id="groupFullMsg" class="mt-4 hidden">
-                            <button onclick="finalizeGroup()" class="w-full bg-orange-500 text-white font-bold py-2 rounded-lg">Gruppe abschließen</button>
+                            <div class="bg-blue-50 p-3 rounded-lg text-blue-800 text-xs mb-4 text-center font-medium">Gruppe voll! Klicke unten, um 10P, 5P und 1P zu verteilen.</div>
+                            <button onclick="finalizeGroup()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg transition">Gruppe abschließen & Punkte senden</button>
                         </div>
                     </div>
                 </div>
                 <div class="glass-card rounded-2xl p-4">
-                    <h3 class="font-bold border-b pb-2 mb-4">Aktuelle Gruppe</h3>
+                    <h3 class="font-bold border-b pb-2 mb-4">Aktuelle Gruppe (Zeit-Schätzen)</h3>
                     <div id="currentGroupList" class="space-y-2"></div>
                 </div>
             </div>
@@ -249,6 +260,48 @@
                 </div>
             </div>
 
+            <!-- SCHULE PAGE -->
+            <div id="page-school" class="hidden max-w-2xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-yellow-500">
+                    <h2 class="text-3xl font-bold text-center text-slate-800">🏫 Schule</h2>
+                    <input type="text" id="schoolName" placeholder="Name (3+3 Regel)" class="w-full px-4 py-2 rounded-lg border">
+                    <div class="p-4 bg-white rounded-xl border border-slate-200">
+                        <label class="block font-bold text-slate-700 mb-2">Erreichte Punkte:</label>
+                        <input type="number" id="schoolPoints" placeholder="Punkte eingeben" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <button onclick="saveSchoolResults()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-xl shadow-lg transition">Speichern</button>
+                </div>
+            </div>
+
+            <!-- ZEICHNEN PAGE -->
+            <div id="page-drawing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-6">
+                    <div class="glass-card rounded-2xl p-8 space-y-4 border-b-8 border-cyan-500">
+                        <h2 class="text-3xl font-bold text-center text-slate-800">🎨 Zeichnen</h2>
+                        <p class="text-sm text-center text-slate-500 italic">Bewerte die Zeichnungen einer 3er-Gruppe</p>
+                        
+                        <div class="space-y-3">
+                            <input type="text" id="drawName" placeholder="Name des Zeichners" class="w-full px-4 py-2 rounded-lg border">
+                            <select id="drawRank" class="w-full px-4 py-2 rounded-lg border bg-white">
+                                <option value="" disabled selected>Bewertung wählen...</option>
+                                <option value="10">Platz 1 (10 Punkte)</option>
+                                <option value="5">Platz 2 (5 Punkte)</option>
+                                <option value="1">Platz 3 (1 Punkte)</option>
+                            </select>
+                            <button onclick="addDrawingToGroup()" class="w-full bg-cyan-600 text-white font-bold py-3 rounded-xl shadow-md">Zur Gruppe hinzufügen</button>
+                        </div>
+
+                        <div id="drawGroupFullMsg" class="mt-4 hidden">
+                            <button onclick="finalizeDrawingGroup()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">Gruppe abschließen & speichern</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <h3 class="font-bold border-b pb-2 mb-4">Gruppen-Bewertung (Zeichnen)</h3>
+                    <div id="drawingGroupList" class="space-y-2"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -259,7 +312,15 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "placeholder",
+            authDomain: "placeholder",
+            projectId: "placeholder",
+            storageBucket: "placeholder",
+            messagingSenderId: "placeholder",
+            appId: "placeholder"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -271,18 +332,62 @@
             memory: { startTime: 0, elapsed: 0, interval: null, isRunning: false }
         };
         let currentGroupResults = [];
+        let drawingGroupResults = [];
         let counters = { runErrors: 0, stuckCount: 0 };
         let leaderboardUnsubscribe = null;
 
         window.showPage = (id) => {
-            ['home', 'timer', 'running', 'domino', 'memory', 'childhood', 'leaderboard'].forEach(p => {
+            ['home', 'timer', 'running', 'domino', 'memory', 'childhood', 'school', 'drawing', 'leaderboard'].forEach(p => {
                 const el = document.getElementById('page-'+p);
                 if(el) el.classList.add('hidden');
             });
             document.getElementById('page-'+id).classList.remove('hidden');
         };
 
-        // RULE 3: Initialize Auth and THEN start queries
+        window.toggleAuth = (show) => {
+            document.getElementById('loginForm').classList.toggle('hidden', !show);
+            document.getElementById('registerForm').classList.toggle('hidden', show);
+        };
+
+        window.handleLogin = async () => {
+            const user = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if(!user) return showToast("Name fehlt!");
+            try {
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user));
+                if (snap.exists() && snap.data().password === pass) {
+                    currentUser = user;
+                    document.getElementById('currentUserDisplay').textContent = "Spieler: " + user;
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    showPage('home');
+                } else showToast("Login fehlgeschlagen!");
+            } catch (e) {
+                console.error(e);
+                showToast("Fehler bei Datenbankverbindung.");
+            }
+        };
+
+        window.handleRegister = async () => {
+            const user = document.getElementById('regUsername').value.trim();
+            const pass = document.getElementById('regPassword').value.trim();
+            if(!user || !pass) return showToast("Eingabe unvollständig!");
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user), { password: pass });
+                showToast("Konto erstellt! Bitte einloggen."); window.toggleAuth(true);
+            } catch (e) {
+                console.error(e);
+                showToast("Registrierung fehlgeschlagen.");
+            }
+        };
+
+        window.logout = () => { currentUser = null; location.reload(); };
+
+        window.changeCounter = (key, val, displayId) => {
+            counters[key] = Math.max(0, counters[key] + val);
+            document.getElementById(displayId).textContent = counters[key];
+        };
+
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -295,109 +400,88 @@
             }
         };
 
-        // Auth Listener - Startet Sync erst nach Login
         onAuthStateChanged(auth, (user) => { 
-            if (user) {
-                console.log("Eingeloggt als:", user.uid);
-                syncLeaderboard(); 
-            } else {
-                if (leaderboardUnsubscribe) leaderboardUnsubscribe();
-            }
+            if (user) syncLeaderboard(); 
+            else if (leaderboardUnsubscribe) leaderboardUnsubscribe();
         });
 
         initAuth();
 
-        window.toggleAuth = (show) => {
-            document.getElementById('loginForm').classList.toggle('hidden', !show);
-            document.getElementById('registerForm').classList.toggle('hidden', show);
-        };
-
-        window.handleLogin = async () => {
-            const user = document.getElementById('loginUsername').value.trim();
-            const pass = document.getElementById('loginPassword').value.trim();
-            if(!user) return showToast("Name fehlt!");
-            const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user));
-            if (snap.exists() && snap.data().password === pass) {
-                currentUser = user;
-                document.getElementById('currentUserDisplay').textContent = "Spieler: " + user;
-                document.getElementById('authSection').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                showPage('home');
-            } else showToast("Login fehlgeschlagen!");
-        };
-
-        window.handleRegister = async () => {
-            const user = document.getElementById('regUsername').value.trim();
-            const pass = document.getElementById('regPassword').value.trim();
-            if(!user || !pass) return showToast("Eingabe unvollständig!");
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user), { password: pass });
-            showToast("Konto erstellt! Bitte einloggen."); toggleAuth(true);
-        };
-
-        window.logout = () => { currentUser = null; location.reload(); };
-
-        window.changeCounter = (key, val, displayId) => {
-            counters[key] = Math.max(0, counters[key] + val);
-            document.getElementById(displayId).textContent = counters[key];
-        };
-
-        // SYNC LEADERBOARD (LIVE) - RULE 1 & 2
         function syncLeaderboard() {
             if (leaderboardUnsubscribe) leaderboardUnsubscribe();
-
             const scoresCollection = collection(db, 'artifacts', appId, 'public', 'data', 'scores');
-            
             leaderboardUnsubscribe = onSnapshot(scoresCollection, (snap) => {
                 const scores = [];
                 snap.forEach(d => scores.push(d.data()));
-                
-                // RULE 2: Sort in Memory
                 scores.sort((a,b) => b.points - a.points);
-                
                 const tbody = document.getElementById('liveLeaderboardBody');
                 if(!tbody) return;
-
                 if (scores.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-slate-400">Noch keine Punkte vorhanden.</td></tr>`;
                     return;
                 }
-
                 tbody.innerHTML = scores.map((s, index) => {
                     const isTop = index < 3;
                     const rankClass = isTop ? 'font-bold text-blue-600' : 'text-slate-500';
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.';
-                    
-                    return `
-                        <tr class="hover:bg-blue-50 transition duration-150">
-                            <td class="px-6 py-4 ${rankClass}">${medal}</td>
-                            <td class="px-6 py-4 font-semibold text-slate-700">${s.name}</td>
-                            <td class="px-6 py-4 text-right font-bold text-blue-700">${(s.points || 0).toFixed(1)} <span class="text-[10px] text-slate-400">PKT</span></td>
-                        </tr>
-                    `;
+                    return `<tr class="hover:bg-blue-50 transition duration-150">
+                        <td class="px-6 py-4 ${rankClass}">${medal}</td>
+                        <td class="px-6 py-4 font-semibold text-slate-700">${s.name}</td>
+                        <td class="px-6 py-4 text-right font-bold text-blue-700">${(s.points || 0).toFixed(1)} <span class="text-[10px] text-slate-400">PKT</span></td>
+                    </tr>`;
                 }).join('');
-            }, (error) => {
-                console.error("Firestore Sync Error:", error);
-                const tbody = document.getElementById('liveLeaderboardBody');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-red-500">Fehler beim Laden der Daten.</td></tr>`;
             });
         }
 
-        // --- GAME LOGIC SAVE WRAPPERS ---
-
         async function updateGlobalScore(name, pts) {
-            if (!auth.currentUser) {
-                showToast("Bitte warten, Anmeldung läuft...");
-                return;
-            }
+            if (!auth.currentUser) return showToast("Bitte warten...");
             try {
                 const ref = doc(db, 'artifacts', appId, 'public', 'data', 'scores', name);
                 const snap = await getDoc(ref);
                 const currentPts = snap.exists() ? (snap.data().points || 0) : 0;
                 await setDoc(ref, { points: currentPts + pts, name: name });
-            } catch (err) {
-                console.error("Speicherfehler:", err);
-                showToast("Fehler beim Speichern!");
-            }
+            } catch (err) { console.error(err); showToast("Fehler!"); }
+        }
+
+        window.saveSchoolResults = async () => {
+            const name = document.getElementById('schoolName').value.trim();
+            const pts = parseFloat(document.getElementById('schoolPoints').value) || 0;
+            if(!name) return showToast("Name fehlt!");
+            await updateGlobalScore(name, pts);
+            showToast(`${pts} Punkte für ${name} (Schule) gespeichert!`);
+            document.getElementById('schoolName').value = '';
+            document.getElementById('schoolPoints').value = '';
+            showPage('home');
+        };
+
+        window.addDrawingToGroup = () => {
+            const name = document.getElementById('drawName').value.trim();
+            const pts = parseInt(document.getElementById('drawRank').value);
+            if(!name || !pts) return showToast("Name oder Platzierung fehlt!");
+            if(drawingGroupResults.find(r => r.pts === pts)) return showToast("Dieser Platz wurde bereits vergeben!");
+            drawingGroupResults.push({ name, pts });
+            updateDrawingUI();
+            document.getElementById('drawName').value = '';
+            document.getElementById('drawRank').value = '';
+            if(drawingGroupResults.length === 3) document.getElementById('drawGroupFullMsg').classList.remove('hidden');
+        };
+
+        window.finalizeDrawingGroup = async () => {
+            for (let r of drawingGroupResults) await updateGlobalScore(r.name, r.pts);
+            drawingGroupResults = [];
+            updateDrawingUI();
+            document.getElementById('drawGroupFullMsg').classList.add('hidden');
+            showToast("Zeichnen-Ergebnisse gespeichert!");
+            showPage('home');
+        };
+
+        function updateDrawingUI() {
+            document.getElementById('drawingGroupList').innerHTML = drawingGroupResults.map(r => 
+                `<div class="p-2 bg-white rounded border flex justify-between items-center">
+                    <span class="font-bold">${r.name}</span>
+                    <span class="bg-cyan-100 text-cyan-800 px-2 py-1 rounded text-xs">${r.pts} Pkt</span>
+                </div>`
+            ).join('');
         }
 
         window.saveChildhoodResults = async () => {
@@ -409,7 +493,7 @@
             showToast(`${pts} Pkt für ${name} gespeichert!`);
             document.getElementById('childName').value = '';
             document.getElementById('childImageCount').value = '';
-            showPage('home');
+            window.showPage('home');
         };
 
         window.saveMemoryResults = async () => {
@@ -419,17 +503,14 @@
             const guessed = parseFloat(document.getElementById('memGuessedTime').value) || 0;
             const actual = timers.memory.elapsed / 1000;
             if(!name) return showToast("Name fehlt!");
-
             let pts = 0;
             if(c1 >= 7) pts += 2.5; else if(c1 >= 5) pts += 2; else if(c1 >= 1) pts += 1;
             if(c2 >= 13) pts += 2.5; else if(c2 >= 11) pts += 2; else if(c2 >= 9) pts += 1.5; else if(c2 >= 5) pts += 1;
-
             const diff = Math.abs(actual - guessed);
             if(diff <= 2.9) pts += 2; else if(diff <= 5) pts += 1.5; else if(diff <= 10) pts += 0.5;
-
             await updateGlobalScore(name, pts);
             showToast(`${pts.toFixed(1)} Memory-Pkt für ${name}!`);
-            resetTimer('memory'); showPage('home');
+            window.resetTimer('memory'); window.showPage('home');
         };
 
         window.saveRunResults = async () => {
@@ -440,7 +521,7 @@
             await updateGlobalScore(name, pts);
             document.getElementById('runName').value = ''; counters.runErrors = 0;
             document.getElementById('errorDisplay').textContent = "0";
-            showPage('home');
+            window.showPage('home');
         };
 
         window.saveDominoResults = async () => {
@@ -452,7 +533,7 @@
             await updateGlobalScore(name, pts);
             document.getElementById('dominoName').value = ''; counters.stuckCount = 0;
             document.getElementById('stuckDisplay').textContent = "0";
-            showPage('home');
+            window.showPage('home');
         };
 
         window.saveResult = () => {
@@ -461,23 +542,31 @@
             if(!name || isNaN(guessed)) return showToast("Eingabe prüfen!");
             const diff = Math.abs((timers.timer.elapsed / 1000) - guessed);
             currentGroupResults.push({ name, diff, rawDiff: diff });
-            updateGroupUI(); resetTimer('timer');
+            updateGroupUI(); window.resetTimer('timer');
             if (currentGroupResults.length === 3) document.getElementById('groupFullMsg').classList.remove('hidden');
         };
 
         window.finalizeGroup = async () => {
+            // Sortierung nach kleinster Differenz
             currentGroupResults.sort((a,b) => a.rawDiff - b.rawDiff);
-            const points = [10, 5, 1];
-            for (let i=0; i<currentGroupResults.length; i++) await updateGlobalScore(currentGroupResults[i].name, points[i] || 0);
-            currentGroupResults = []; updateGroupUI();
+            const points = [10, 5, 1]; // Platz 1: 10, Platz 2: 5, Platz 3: 1
+            for (let i=0; i<currentGroupResults.length; i++) {
+                await updateGlobalScore(currentGroupResults[i].name, points[i]);
+            }
+            currentGroupResults = []; 
+            updateGroupUI();
             document.getElementById('groupFullMsg').classList.add('hidden');
-            showPage('home');
+            showToast("Zeit-Schätzen Punkte vergeben!");
+            window.showPage('home');
         };
 
-        // --- SHARED UTILS ---
-
         function updateGroupUI() {
-            document.getElementById('currentGroupList').innerHTML = currentGroupResults.map(r => `<div class="p-2 bg-white rounded border flex justify-between"><span>${r.name}</span> <span class="text-xs text-slate-400">Δ ${r.diff.toFixed(2)}s</span></div>`).join('');
+            document.getElementById('currentGroupList').innerHTML = currentGroupResults.map(r => 
+                `<div class="p-2 bg-white rounded border flex justify-between items-center">
+                    <span class="font-bold">${r.name}</span> 
+                    <span class="text-xs bg-slate-100 px-2 py-1 rounded">Abweichung: ${r.diff.toFixed(2)}s</span>
+                </div>`
+            ).join('');
         }
 
         window.toggleTimer = (type) => {
